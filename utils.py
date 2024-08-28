@@ -137,7 +137,9 @@ class Logger(object):
     def log(self, *, delimiter='\n'):
         msgs = []
         for key, vals in self.infos.items():
-            msgs.append('%s %.6f' % (key, np.mean(vals)))
+            if isinstance(vals, list):
+                vals = torch.tensor(vals)
+            msgs.append("%s %.6f" % (key, vals.mean().item()))
         msg = delimiter.join(msgs)
         self.log_file.write(msg + '\n')
         self.log_file.flush()
