@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import utils
 from condv import MasterWorkersCV
-
+from main import create_env
 
 def create_shared_nparray(shape, dtype):
     dtype2ctype = {
@@ -44,11 +44,12 @@ class SharedBuffer:
 
 
 class BatchSyncEnv:
-    def __init__(self, env_thunk, num_envs):
+    def __init__(self, env_thunk, cfg):
         self.env_thunk = env_thunk
-        self.env = env_thunk()
+        self.cfg = cfg
+        self.env = env_thunk(cfg)
         self.name = self.env.name
-        self.num_envs = num_envs
+        self.num_envs = cfg.num_envs
         self.num_actions = self.env.num_actions
         self.state_shape = self.env.state_shape
 
@@ -58,7 +59,7 @@ class BatchSyncEnv:
 
     def create_processes(self):
         for eid in range(self.num_envs):
-            args = (self.env_thunk, self.cv, self.shared_buffer, eid)
+            args = (self.env_thunk, self.cfg, self.cv, self.shared_buffer, eid)
             p = mp.Process(target=self._single_env_step, args=args)
             self.processes.append(p)
 
@@ -66,9 +67,9 @@ class BatchSyncEnv:
             p.start()
 
     @staticmethod
-    def _single_env_step(env_thunk, cv, shared_buffer, eid):
+    def _single_env_step(env_thunk, cfg, cv, shared_buffer, eid):
         utils.set_all_seeds(eid)
-        env = env_thunk()
+        env = env_thunk(cfg)
 
         while True:
             cv.wait_for_work(eid)
@@ -119,8 +120,7 @@ if __name__ == '__main__':
 
     num_envs = 8
     # env_thunk = lambda : AtariEnv('SpaceInvadersNoFrameskip-v4', 4, 4, 84)
-    env_thunk = lambda : AtariEnv('PongNoFrameskip-v4', 4, 4, 84)
-    benv = BatchSyncEnv(env_thunk, num_envs)
+    benv = BatchSyncEnv(create_env, cfg, num_envs)
     benv.create_processes()
     actions = np.random.randint(0, benv.num_actions, (num_envs,))
 

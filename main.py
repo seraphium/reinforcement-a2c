@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument('--weight_norm', action='store_true')
 
     # enviroment
-    parser.add_argument('--env_name', default='PongNoFrameskip-v4')
+    parser.add_argument("--env_name", default="ALE/SpaceInvaders-v5")
     parser.add_argument('--num_envs', type=int, default=16)
     parser.add_argument('--traj_len', type=int, default=5,
                         help='number of forward steps in a2c')
@@ -51,6 +51,12 @@ def parse_args():
         args.output = '%s_%s' % (args.output, args.exp_name)
     return args
 
+def create_env(cfg):
+    return env.AtariEnv(
+        cfg.env_name, cfg.frame_skip, cfg.num_frames, cfg.frame_size, True
+    )
+
+
 
 if __name__ == '__main__':
     args = parse_args()
@@ -61,10 +67,9 @@ if __name__ == '__main__':
     cfg = utils.Config(vars(args))
     cfg.dump(os.path.join(cfg.output, 'cfg.txt'))
 
+
     # train env
-    env_thunk = lambda : env.AtariEnv(
-        cfg.env_name, cfg.frame_skip, cfg.num_frames, cfg.frame_size, True)
-    train_env = batch_env.BatchSyncEnv(env_thunk, cfg.num_envs)
+    train_env = batch_env.BatchSyncEnv(create_env, cfg)
     train_env.create_processes()
 
     # eval env
