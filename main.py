@@ -29,7 +29,7 @@ def parse_args():
 
     # enviroment
     parser.add_argument("--env_name", default="ALE/SpaceInvaders-v5")
-    parser.add_argument('--num_envs', type=int, default=16)
+    parser.add_argument('--num_envs', type=int, default=8)
     parser.add_argument('--traj_len', type=int, default=5,
                         help='number of forward steps in a2c')
     parser.add_argument('--num_frames', type=int, default=4,

@@ -75,14 +75,14 @@ class BatchSyncEnv:
             cv.wait_for_work(eid)
 
             if env.end: # should only happen at the very beginning
-                next_state = env.reset()
+                next_state = env.reset()[0]
                 shared_buffer.non_ends[eid] = 1.0
             else:
                 next_state, reward = env.step(shared_buffer.actions[eid])
                 shared_buffer.rewards[eid] = reward
                 shared_buffer.non_ends[eid] = 1.0 - np.float32(env.end)
                 if env.end:
-                    next_state = env.reset()
+                    next_state = env.reset()[0]
             shared_buffer.next_states[eid][:] = next_state
 
             cv.work_done_maybe_notify_master(eid)

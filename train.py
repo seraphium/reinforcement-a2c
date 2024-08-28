@@ -82,7 +82,7 @@ def evaluate(env, num_epsd, model, logger):
     epsd_iters = 0
     max_epsd_iters = 108000
 
-    state = env.reset()
+    state = env.reset()[0]
     while epsd_idx < num_epsd:
         state = torch.from_numpy(state).unsqueeze(0).cuda()
         action = model.get_actions(state, False)[0]
@@ -93,10 +93,10 @@ def evaluate(env, num_epsd, model, logger):
         if env.end or epsd_iters >= max_epsd_iters:
             total_rewards[epsd_idx] = env.epsd_reward
             logger.write('>>>Eval: [%d/%d], rewards: %s' %
-                         (epsd_idx+1, num_epsd, total_rewards[epsd_idx]))
+                        (epsd_idx+1, num_epsd, total_rewards[epsd_idx]))
 
             if epsd_idx < num_epsd - 1: # leave last reset to next run
-                state = env.reset()
+                state = env.reset()[0]
 
             epsd_idx += 1
             epsd_iters = 0

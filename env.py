@@ -16,16 +16,16 @@ def preprocess_frame(screen, prev_screen, frame_size):
 
 class AtariEnv:
     def __init__(self,
-                 name,
-                 frame_skip,
-                 num_frames,
-                 frame_size,
-                 one_life,
-                 *,
-                 no_op_start=30,
-                 record=False,
-                 output_dir=None):
-        # env
+                name,
+                frame_skip,
+                num_frames,
+                frame_size,
+                one_life,
+                *,
+                no_op_start=30,
+                record=False,
+                output_dir=None):
+    # env
         self.name = name
         self.env = gym.make(name)
         self.num_actions = self.env.action_space.n
@@ -72,7 +72,7 @@ class AtariEnv:
                 (self.frame_size, self.frame_size), dtype=np.float32)
             self.frame_queue.append(empty_frame)
 
-        screen = self.env.reset()
+        screen = self.env.reset()[0]
         self.prev_screen = screen
         # no_op_start
         n = np.random.randint(0, self.no_op_start + 1)
@@ -102,10 +102,11 @@ class AtariEnv:
             if i > 0:
                 self.prev_screen = screen
 
-            screen, r, self.end, info = self.env.step(action)
+            screen, r, terminate,truncate, info = self.env.step(action)
+            self.end = terminate or truncate
             reward += r
 
-            if self.one_life and info['ale.lives'] < self.lives:
+            if self.one_life and info['lives'] < self.lives:
                 self.end = True
 
             if self.end:
